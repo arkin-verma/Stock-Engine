@@ -1,3 +1,6 @@
+#ifndef STOCKS_CPP
+#define STOCKS_CPP
+#include "stocks.hpp"
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -5,10 +8,8 @@
 #include <cstring>
 #include <cstdlib>
 
-static const int MAX_TICKERS = 1024;
-
-// Initialize Order Type enum
-enum OrderType {BUY, SELL};
+// Set max number of tickers
+const int MAX_TICKERS = 1024;
 
 // Initialize Order struct
 struct Order {
@@ -183,3 +184,5 @@ int main() {
     simulateTransactions(50, 200); // 50 transactions with 200ms delay
     return 0;
 }
+
+#endif

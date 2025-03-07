@@ -4,15 +4,18 @@
 #include <atomic>
 #include <string>
 
-// Define MAX_TICKERS constant
-#define MAX_TICKERS 1000
+// Define OrderType enumeration
+enum OrderType {
+    BUY,
+    SELL
+};
 
 // Function declarations
 int hashTicker(const char* symbol);
 void initEngine();
-void addOrder(enum OrderType type, const char* symbol, int quantity, int price);
+void addOrder(OrderType type, const char* symbol, int quantity, int price);
 void matchOrder();
 std::string generateRandomTicker();
 void simulateTransactions(int numTransactions, int delayMs);
 
-#endif // STOCKS_H
+#endif 
