@@ -102,6 +102,15 @@ void matchOrder() {
         }
         }
     
+    // If no SELL orders found, return
+    if (lowestSellPrice == INT_MAX) {
+        std::cout << "No SELL orders found." << std::endl;
+        return;
+    }
+
+    // Print the lowest SELL price
+    std::cout << "Lowest SELL price: " << lowestSellPrice << std::endl;
+
     // Second pass: Match orders by looking for BUY orders with price >= lowest SELL price
     for (int i = 0; i < MAX_TICKERS; ++i) {
         if (!orderBook[i].inUse.load(std::memory_order_relaxed)) continue;
@@ -112,4 +121,65 @@ void matchOrder() {
             }
         }
     }
+}
+
+// Function to generate a random ticker symbol
+std::string generateRandomTicker() {
+    static const char alphanum[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string ticker;
+    int length = 3 + rand() % 4; // 3-6 characters
+    
+    for (int i = 0; i < length; ++i) {
+        ticker += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+    
+    return ticker;
+}
+
+// Function to simulate random stock transactions
+void simulateTransactions(int numTransactions, int delayMs = 100) {
+    // Seed the random number generator
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    
+    std::cout << "Starting transaction simulation with " << numTransactions << " orders..." << std::endl;
+    
+    for (int i = 0; i < numTransactions; ++i) {
+        // Generate random order parameters
+        OrderType type = (rand() % 2 == 0) ? BUY : SELL;
+        std::string ticker = generateRandomTicker();
+        int quantity = 100 * (1 + rand() % 100); // 100-10000 shares
+        int price = 10 + rand() % 990; // $10-$1000
+        
+        try {
+            // Add the order to the order book
+            addOrder(type, ticker.c_str(), quantity, price);
+            
+            // Print the order details
+            std::cout << "Order #" << i+1 << ": " 
+                      << (type == BUY ? "BUY" : "SELL") << " "
+                      << quantity << " shares of " << ticker
+                      << " at $" << price << std::endl;
+            
+            // Match orders periodically
+            if (i % 5 == 4) {
+                std::cout << "\n--- Matching orders ---" << std::endl;
+                matchOrder();
+                std::cout << "----------------------\n" << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error adding order #" << i+1 << ": " << e.what() << std::endl;
+        }
+        
+        // Add a small delay between transactions
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+    }
+    
+    std::cout << "Transaction simulation complete." << std::endl;
+}
+
+// Example main function to demonstrate the simulation
+int main() {
+    initEngine();
+    simulateTransactions(50, 200); // 50 transactions with 200ms delay
+    return 0;
 }
