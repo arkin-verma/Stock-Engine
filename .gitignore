@@ -1,3 +1,4 @@
 stocks
 stocks.dSYM
-.vscodec
+/.vscode
+.DS_Store
