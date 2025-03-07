@@ -109,7 +109,7 @@ void matchOrder() {
     }
 
     // Print the lowest SELL price
-    std::cout << "Lowest SELL price: " << lowestSellPrice << std::endl;
+    std::cout << "Lowest SELL price: $" << lowestSellPrice << std::endl;
 
     // Second pass: Match orders by looking for BUY orders with price >= lowest SELL price
     for (int i = 0; i < MAX_TICKERS; ++i) {
@@ -117,7 +117,7 @@ void matchOrder() {
         int p = orderBook[i].price.load(std::memory_order_relaxed);
         if (orderBook[i].type.load(std::memory_order_relaxed) == BUY) {
             if (p >= lowestSellPrice) {
-                std::cout << "Matched BUY order for " << orderBook[i].ticker << " at price " << p << std::endl;
+                std::cout << "Matched BUY order for " << orderBook[i].ticker << " at price $" << p << std::endl;
             }
         }
     }
