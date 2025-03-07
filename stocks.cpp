@@ -53,7 +53,7 @@ void initEngine() {
 
 // Add or update an order for a ticker
 void addOrder(OrderType type, const char* symbol, int quantity, int price) {
-    if (quantity <= 0 || price <= 0) throw std::runtime_error("Invalid quantity/price.");
+    if (quantity <= 0 || price <= 0) throw std::runtime_error("Invalid quantity/price: cannot be negative. ");
 
     int startIndex = hashTicker(symbol);
     int idx = startIndex;
@@ -92,5 +92,24 @@ void matchOrder() {
     int lowestSellPrice = INT_MAX;
 
     // First pass: find min SELL price
+    for (int i = 0; i < MAX_TICKERS; ++i) {
+        if (!orderBook[i].inUse.load(std::memory_order_relaxed)) continue;
+        int p = orderBook[i].price.load(std::memory_order_relaxed);
+        if (orderBook[i].type.load(std::memory_order_relaxed) == SELL) {
+            if (p < lowestSellPrice) {
+                lowestSellPrice = p;
+            }
+        }
+        }
     
+    // Second pass: Match orders by looking for BUY orders with price >= lowest SELL price
+    for (int i = 0; i < MAX_TICKERS; ++i) {
+        if (!orderBook[i].inUse.load(std::memory_order_relaxed)) continue;
+        int p = orderBook[i].price.load(std::memory_order_relaxed);
+        if (orderBook[i].type.load(std::memory_order_relaxed) == BUY) {
+            if (p >= lowestSellPrice) {
+                std::cout << "Matched BUY order for " << orderBook[i].ticker << " at price " << p << std::endl;
+            }
+        }
+    }
 }
