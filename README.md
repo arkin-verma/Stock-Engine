@@ -2,7 +2,7 @@
 
 ## Abstract
 
-This project matches Buys with Sells in real time using lock-free data structures via C++11 atomic operations. Ticker symbols are hashed and stored in a fixed-sized array, orderBook, to allow for fast look-ups. Order objects are stored in every index of the array, with an atomic expression, inUse, dictating if an index is in use or not.
+This project matches Buys with Sells in real time using lock-free data structures via C++11 atomic operations. Ticker symbols are hashed and stored in a fixed-sized array, orderBook, to allow for fast look-ups. Order objects are stored in every index of the array, with an atomic expression, inUse, dictating if an index has been occupied or not.
 
 ## Implementation
 
