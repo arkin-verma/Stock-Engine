@@ -26,6 +26,7 @@ static Order orderBook[MAX_TICKERS];
 
 // Hash function to store tickers to specific indices
 // Used FNV-1a hash algorithm
+// Reference: https://gist.github.com/hwei/1950649d523afd03285c
 int hashTicker(const char* symbol) {
     // FNV-1a hash algorithm constants
     const uint32_t FNV_PRIME = 16777619;
