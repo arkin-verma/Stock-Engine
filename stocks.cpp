@@ -21,7 +21,7 @@ struct Order {
 
 // Global array of Buy/Sell Orders
 // addOrder will modify this array
-static Order gOrders[MAX_TICKERS];
+static Order orderBook[MAX_TICKERS];
 
 // Hash function to store tickers to specific indices
 // Used FNV-1a hash algorithm
@@ -41,12 +41,56 @@ int hashTicker(const char* symbol) {
     return hash % MAX_TICKERS;
 }
 
-// Initialize all Order structs in gOrders
+// Initialize all Order structs in orderBook
 void initEngine() {
     for (int i = 0; i < MAX_TICKERS; ++i) {
-        gOrders[i].inUse.store(false, std::memory_order_relaxed);
-        gOrders[i].quantity.store(0, std::memory_order_relaxed);
-        gOrders[i].price.store(0, std::memory_order_relaxed);
-        std::memset(gOrders[i].ticker, 0, sizeof(gOrders[i].ticker));
+        orderBook[i].inUse.store(false, std::memory_order_relaxed);
+        orderBook[i].quantity.store(0, std::memory_order_relaxed);
+        orderBook[i].price.store(0, std::memory_order_relaxed);
+        std::memset(orderBook[i].ticker, 0, sizeof(orderBook[i].ticker));
     }
+}
+
+// Add or update an order for a ticker
+void addOrder(OrderType type, const char* symbol, int quantity, int price) {
+    if (quantity <= 0 || price <= 0) throw std::runtime_error("Invalid quantity/price.");
+
+    int startIndex = hashTicker(symbol);
+    int idx = startIndex;
+    for (int attempt = 0; attempt < MAX_TICKERS; ++attempt) {
+        bool expected = false;
+
+        // If current index is available
+        if (!orderBook[idx].inUse.load(std::memory_order_relaxed)) {
+            // Attempt to claim this index
+            if (orderBook[idx].inUse.compare_exchange_strong(expected, true)) {
+                // Write atomic values
+                // Use strncpy to avoid buffer overflow
+                std::strncpy(orderBook[idx].ticker, symbol, sizeof(orderBook[idx].ticker) - 1);
+                orderBook[idx].ticker[sizeof(orderBook[idx].ticker) - 1] = '\0';
+                orderBook[idx].type.store(type, std::memory_order_relaxed);
+                orderBook[idx].quantity.store(quantity, std::memory_order_relaxed);
+                orderBook[idx].price.store(price, std::memory_order_relaxed);
+                return;
+            }
+        } else {
+            // Check if same ticker
+            if (std::strncmp(orderBook[idx].ticker, symbol, sizeof(orderBook[idx].ticker)) == 0) {
+                // Update existing ticker
+                orderBook[idx].type.store(type, std::memory_order_relaxed);
+                orderBook[idx].quantity.store(quantity, std::memory_order_relaxed);
+                orderBook[idx].price.store(price, std::memory_order_relaxed);
+                return;
+            }
+        }
+        idx = (idx + 1) % MAX_TICKERS;
+    }
+    throw std::runtime_error("No more capacity for new ticker.");
+}
+
+void matchOrder() {
+    int lowestSellPrice = INT_MAX;
+
+    // First pass: find min SELL price
+    
 }
